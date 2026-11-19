@@ -4,6 +4,8 @@ import {
   Clock3,
   Star,
   CheckCircle2,
+  Users,
+  FolderKanban,
   ArrowUpRight,
   Sparkles,
 } from "lucide-react";
@@ -24,12 +26,19 @@ export default async function Overview() {
     .limit(10);
 
   const workspaceIds = (memberships ?? []).map((membership) => membership.workspace_id);
-  const { count } = workspaceIds.length
-    ? await supabase
-        .from("conversations")
-        .select("*", { count: "exact", head: true })
-        .in("workspace_id", workspaceIds)
-    : { count: 0 };
+  const [conversationStats, activeStats, customerStats] = workspaceIds.length
+    ? await Promise.all([
+        supabase.from("conversations").select("*", { count: "exact", head: true }).in("workspace_id", workspaceIds),
+        supabase.from("conversations").select("*", { count: "exact", head: true }).in("workspace_id", workspaceIds).in("status", ["open", "pending"]),
+        supabase.from("contacts").select("*", { count: "exact", head: true }).in("workspace_id", workspaceIds),
+      ])
+    : [{ count: 0 }, { count: 0 }, { count: 0 }];
+
+  const totalConversations = conversationStats.count ?? 0;
+  const activeConversations = activeStats.count ?? 0;
+  const totalCustomers = customerStats.count ?? 0;
+  const resolved = Math.max(totalConversations - activeConversations, 0);
+  const resolutionRate = totalConversations ? Math.round((resolved / totalConversations) * 100) : 0;
 
   return (
     <>
@@ -45,10 +54,10 @@ export default async function Overview() {
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
-          { icon: MessageSquareText, label: "Conversations", value: String(count ?? 0) },
-          { icon: Clock3, label: "First response", value: "—" },
-          { icon: Star, label: "CSAT", value: "—" },
-          { icon: CheckCircle2, label: "Resolution rate", value: "—" },
+          { icon: MessageSquareText, label: "Conversations", value: String(totalConversations) },
+          { icon: Clock3, label: "Active", value: String(activeConversations) },
+          { icon: Users, label: "Customers", value: String(totalCustomers) },
+          { icon: CheckCircle2, label: "Resolved rate", value: totalConversations ? String(resolutionRate) + "%" : "—" },
         ].map(({ icon: Icon, label, value }) => (
           <div className="panel p-6" key={label}>
             <div className="bg-blue-50 text-brand w-fit p-3 rounded-xl">
@@ -60,7 +69,7 @@ export default async function Overview() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-5 mt-6">
+      <div className="grid lg:grid-cols-3 gap-5 mt-6">
         <div className="panel p-6">
           <h3 className="font-bold text-lg">Your workspaces</h3>
           <div className="mt-4 space-y-3">
@@ -93,6 +102,21 @@ export default async function Overview() {
         </div>
 
         <div className="panel p-6">
+          <h3 className="font-bold text-lg">Quick start</h3>
+          <div className="space-y-3 mt-4">
+            <Link href="/app/workspaces" className="block rounded-xl bg-blue-50 p-4">
+              <p className="font-semibold">1. Create workspace</p><p className="text-xs text-slate-500 mt-1">Set up your support operation.</p>
+            </Link>
+            <Link href="/app/workspaces" className="block rounded-xl bg-slate-50 p-4">
+              <p className="font-semibold">2. Load demo data</p><p className="text-xs text-slate-500 mt-1">Explore customers and conversations.</p>
+            </Link>
+            <Link href="/app/inbox" className="block rounded-xl bg-slate-50 p-4">
+              <p className="font-semibold">3. Open inbox</p><p className="text-xs text-slate-500 mt-1">Work through conversations and notes.</p>
+            </Link>
+          </div>
+        </div>
+
+        <div className="panel p-6">
           <h3 className="font-bold text-lg">Explore the demo</h3>
           <p className="text-slate-500 mt-3">
             Try eSuport One with fictional UAE customer profiles, sample conversations,
@@ -106,6 +130,11 @@ export default async function Overview() {
             Connect Gmail or Outlook later from Channels when provider credentials are configured.
           </p>
         </div>
+      </div>
+
+      <div className="panel p-6 mt-5">
+        <div className="flex items-center gap-3"><FolderKanban className="text-brand" /><h3 className="font-bold text-lg">v1.2 live metrics</h3></div>
+        <p className="text-slate-500 mt-2">Dashboard totals are read directly from your Supabase workspace data. This foundation is ready for SLA, team and channel reporting.</p>
       </div>
     </>
   );
