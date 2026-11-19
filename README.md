@@ -1,23 +1,35 @@
-# eSuport One v1.0.0 — Email Reply Foundation
+# eSuport One v1.1.0 — Demo onboarding and workspace repair
 
 ## What's included
-- Gmail send and Microsoft Graph reply endpoint.
-- Server-enforced workspace authorization and provider connection checks.
-- Provider-origin recipient validation (no arbitrary recipient submission).
-- Outbound email attempt audit table with unknown-delivery state.
-- Reply composer component.
-- Existing scheduled sync, Gmail/Outlook inbox, customer management, and Stripe foundation.
+- Production Supabase email-confirmation redirect and resend confirmation action.
+- Supabase publishable-key support in server middleware.
+- Workspace provisioning RPC repair migration.
+- One-click demo workspace with synthetic UAE customer examples.
+- Demo conversations, internal notes, labels, saved replies, and activity history.
+- Idempotent demo seeding: re-running the action will not add duplicate sample records.
+- Clear setup guidance instead of an opaque server exception when database migrations are missing.
 
-## Setup
-1. Configure `.env.local`, run `npm install`, and apply SQL migrations 0001 through 0009.
-2. Change Google OAuth scope to include `https://www.googleapis.com/auth/gmail.send` and Microsoft OAuth scope to include `Mail.Send`; reconnect existing accounts to consent. These permissions may require provider review/admin consent.
-3. Start `npm run dev`. The reply composer appears on individual imported email detail pages.
-4. For local testing, use test mailboxes and verify delivery in Sent Mail.
+## First-time Supabase setup
+1. Configure the Render environment with NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, and NEXT_PUBLIC_SITE_URL=https://esuport-one.onrender.com.
+2. In the Supabase SQL Editor, apply migrations 0001 through 0010 in numerical order. Migration 0010_v1_1_demo_workspace.sql repairs the create_workspace RPC and adds create_demo_workspace.
+3. In Supabase Authentication → URL Configuration, set the Site URL to https://esuport-one.onrender.com and add https://esuport-one.onrender.com/auth/callback to Redirect URLs.
+4. Sign in to eSuport One, open Workspaces, and choose **Create demo workspace**.
+5. Open Customers and Unified Inbox to explore the sample data.
 
-## Limitations
-- Full Next.js build and live provider integration tests have not been performed.
-- Outbound replies are not automatically imported into local email history.
-- Gmail threading may need RFC Message-ID / References headers for robust provider threading.
-- The database logs `unknown` when provider delivery cannot be confirmed; never auto-retry these attempts.
-- No distributed send lock, request idempotency key, rate limits, or production-grade audit monitoring yet.
-- Role-level controls currently permit all workspace roles to reply; tighten per organization before production.
+## Demo data
+The demo workspace is separate from existing business workspaces and uses fictional data only:
+- Maya Chen — email — order delivery question
+- Omar Hassan — WhatsApp — damaged item / return request
+- Sara Ahmed — Instagram — product recommendation
+- Three sample conversations, internal notes, labels, reusable replies, and activity events.
+
+All example customer email addresses use the reserved example.com domain. Sample phone numbers are placeholders. Demo records do not send messages or contact real people.
+
+## Existing integrations
+- Gmail and Microsoft Outlook OAuth sync and reply foundations remain available when their provider credentials and scopes are configured.
+- Stripe billing routes remain in the codebase and require valid Stripe secrets and price IDs before live checkout.
+
+## Important
+- Apply the SQL migrations before using workspace or demo seeding features.
+- Demo data is inserted into a distinct demo workspace; it is not inserted into any pre-existing client workspace.
+- Do not put Supabase service-role keys, Stripe secrets, OAuth client secrets, or database passwords in browser-exposed environment variables or chat.
