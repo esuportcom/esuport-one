@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   MessageSquareText,
   Clock3,
-  Star,
   CheckCircle2,
   Users,
   FolderKanban,
