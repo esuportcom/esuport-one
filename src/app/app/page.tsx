@@ -132,8 +132,8 @@ export default async function Overview() {
       </div>
 
       <div className="panel p-6 mt-5">
-        <div className="flex items-center gap-3"><FolderKanban className="text-brand" /><h3 className="font-bold text-lg">v1.2 live metrics</h3></div>
-        <p className="text-slate-500 mt-2">Dashboard totals are read directly from your Supabase workspace data. This foundation is ready for SLA, team and channel reporting.</p>
+        <div className="flex items-center gap-3"><FolderKanban className="text-brand" /><h3 className="font-bold text-lg">v1.3 inbox productivity</h3></div>
+        <p className="text-slate-500 mt-2">Dashboard totals are read directly from your Supabase workspace data. Inbox search, status filters and workspace filtering are now available for faster support triage.</p>
       </div>
     </>
   );
