@@ -6,7 +6,10 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
@@ -17,17 +20,23 @@ export async function middleware(request: NextRequest) {
       setAll(cookies: CookieToSet[]) {
         cookies.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookies.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
       },
     },
   });
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user && request.nextUrl.pathname.startsWith("/app")) {
     const dest = request.nextUrl.clone();
     dest.pathname = "/login";
     return NextResponse.redirect(dest);
   }
+
   return response;
 }
 
