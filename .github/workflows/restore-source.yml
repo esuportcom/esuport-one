@@ -1,0 +1,80 @@
+name: Restore source and validate
+
+on:
+  push:
+    branches:
+      - fix/restore-nextjs-source-v1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  restore-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Extract application source
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -oq "eSuport-One-v1.0.0 (1).zip" -d . -x "tsconfig.tsbuildinfo"
+          git rm -f --ignore-unmatch tsconfig.tsbuildinfo || true
+          test -f src/app/page.tsx
+          test -f src/app/layout.tsx
+          test -f supabase/migrations/0009_outbound_email.sql
+
+      - name: Install, build and typecheck
+        id: validation
+        shell: bash
+        run: |
+          set +e
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          yarn install --non-interactive
+          install_status=$?
+          build_status=not_run
+          typecheck_status=not_run
+          if [ "$install_status" -eq 0 ]; then
+            yarn build
+            build_status=$?
+            yarn typecheck
+            typecheck_status=$?
+          fi
+          {
+            echo "## eSuport One source restoration checks"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| Dependency install | $install_status |"
+            echo "| Next.js production build | $build_status |"
+            echo "| TypeScript typecheck | $typecheck_status |"
+            echo ""
+            echo "The source extraction commit is created even when a check fails so the results can be reviewed in the pull request. No deployment is triggered by this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "install_status=$install_status" >> "$GITHUB_OUTPUT"
+          echo "build_status=$build_status" >> "$GITHUB_OUTPUT"
+          echo "typecheck_status=$typecheck_status" >> "$GITHUB_OUTPUT"
+
+      - name: Commit extracted source and lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No extracted changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Restore eSuport One application source from v1.0.0 archive"
+          git push origin "HEAD:${{ github.ref_name }}"
