@@ -10,30 +10,36 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [signup, setSignup] = useState(false);
   const [message, setMessage] = useState("");
+  const [canResend, setCanResend] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  function getEmailRedirectTo() {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    return new URL("/auth/callback", siteUrl).toString();
+  }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    setCanResend(false);
 
     try {
       const supabase = createClient();
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const emailRedirectTo = new URL("/auth/callback", siteUrl).toString();
 
       if (signup) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo },
+          options: { emailRedirectTo: getEmailRedirectTo() },
         });
 
         if (error) throw error;
 
+        setCanResend(true);
         setMessage(
-          `A confirmation link has been requested for ${email}. Check your inbox and spam folder, then open the link to activate your account.`,
+          `A confirmation link has been requested for ${email}. Check your inbox and spam folder, or resend it below.`,
         );
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -44,6 +50,27 @@ export default function Login() {
       }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendConfirmation() {
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: getEmailRedirectTo() },
+      });
+
+      if (error) throw error;
+      setMessage(`A new confirmation email has been requested for ${email}. Check your inbox and spam folder.`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Could not resend the confirmation email");
     } finally {
       setLoading(false);
     }
@@ -73,7 +100,10 @@ export default function Login() {
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setCanResend(false);
+              }}
             />
           </label>
 
@@ -101,12 +131,24 @@ export default function Login() {
           </p>
         )}
 
+        {signup && canResend && (
+          <button
+            type="button"
+            disabled={loading}
+            className="text-brand text-sm mt-3 disabled:opacity-50"
+            onClick={resendConfirmation}
+          >
+            Resend confirmation email
+          </button>
+        )}
+
         <button
           type="button"
-          className="text-brand text-sm mt-5"
+          className="text-brand text-sm mt-5 block"
           onClick={() => {
             setSignup(!signup);
             setMessage("");
+            setCanResend(false);
           }}
         >
           {signup ? "Already registered? Sign in" : "New here? Create an account"}
