@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - fix/restore-nextjs-source-v1.0.0
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -15,7 +19,7 @@ jobs:
       - name: Check out repair branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           persist-credentials: true
 
       - name: Set up Node.js
@@ -59,7 +63,7 @@ jobs:
             echo "| Next.js production build | $build_status |"
             echo "| TypeScript typecheck | $typecheck_status |"
             echo ""
-            echo "The source extraction commit is created even when a check fails so the results can be reviewed in the pull request. No deployment is triggered by this workflow."
+            echo "This is a branch-only validation workflow. It does not deploy to Render."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "install_status=$install_status" >> "$GITHUB_OUTPUT"
           echo "build_status=$build_status" >> "$GITHUB_OUTPUT"
@@ -77,4 +81,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Restore eSuport One application source from v1.0.0 archive"
-          git push origin "HEAD:${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}"
