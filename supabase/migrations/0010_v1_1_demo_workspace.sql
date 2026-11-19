@@ -42,7 +42,7 @@ create table if not exists public.demo_workspace_seeds (
 );
 
 alter table public.demo_workspace_seeds enable row level security;
-revoke all on public.demo_workspace_seeds from anon, authenticated;
+revoke all on public.demo_workspace_seeds from public, anon, authenticated;
 
 create or replace function public.create_demo_workspace()
 returns uuid
