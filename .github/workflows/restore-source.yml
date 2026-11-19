@@ -1,0 +1,40 @@
+name: Validate eSuport One
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        id: install
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          yarn install --frozen-lockfile --non-interactive
+
+      - name: Run production build
+        run: yarn build
+
+      - name: Run standalone TypeScript check
+        if: always() && steps.install.outcome == 'success'
+        run: yarn typecheck
+
+      - name: Run ESLint
+        if: always() && steps.install.outcome == 'success'
+        run: yarn lint
