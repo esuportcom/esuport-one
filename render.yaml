@@ -37,6 +37,12 @@ services:
         sync: false
       - key: MICROSOFT_CLIENT_SECRET
         sync: false
+      - key: AYRSHARE_API_KEY
+        sync: false
+      - key: AYRSHARE_DOMAIN
+        sync: false
+      - key: AYRSHARE_PRIVATE_KEY
+        sync: false
       - key: CHANNEL_TOKEN_ENCRYPTION_KEY
         generateValue: true
       - key: CRON_SECRET

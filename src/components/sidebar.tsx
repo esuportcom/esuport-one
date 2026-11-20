@@ -7,7 +7,7 @@ import { BookOpen, Layers3, LayoutDashboard, Inbox, Mail, History, MessagesSquar
 const groups = [
   ["SUPPORT", [["Overview", "/app", LayoutDashboard], ["Workspaces", "/app/workspaces", Layers3], ["Inbox", "/app/inbox", Inbox], ["Email Inbox", "/app/email", Mail], ["Conversations", "/app/conversations", MessagesSquare], ["Sync History", "/app/sync-history", History]]],
   ["ECOMMERCE", [["Customers", "/app/customers", Users], ["Orders", "/app/orders", ShoppingBag], ["Returns & Refunds", "/app/returns", RotateCcw]]],
-  ["CHANNELS", [["Channels", "/app/channels", Radio], ["Integrations", "/app/integrations", Plug]]],
+  ["CHANNELS", [["Channels", "/app/channels", Radio], ["Social Publishing", "/app/social", Radio], ["Integrations", "/app/integrations", Plug]]],
   ["AGENCY", [["Clients", "/app/clients", Building2], ["Agents", "/app/agents", UserRound], ["Teams", "/app/teams", UsersRound], ["Labels", "/app/labels", Tags], ["Saved Replies", "/app/replies", BookOpen]]],
   ["ACCOUNT", [["Plans & Billing", "/app/billing", CreditCard], ["Settings", "/app/settings", Settings]]],
 ] as const;
