@@ -1,0 +1,34 @@
+name: Validate Next.js
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run check:source
+      - run: npm run typecheck
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder-for-build-only
+          NEXT_PUBLIC_SITE_URL: https://example.com
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder-for-build-only
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-for-build-only
+          NEXT_PUBLIC_SITE_URL: https://example.com
+          STRIPE_SECRET_KEY: sk_test_placeholder
+          STRIPE_WEBHOOK_SECRET: whsec_placeholder
+          STRIPE_PRICE_SOLO: price_placeholder
+          STRIPE_PRICE_TEAM: price_placeholder
+          STRIPE_PRICE_BUSINESS: price_placeholder
+          CHANNEL_TOKEN_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+          CRON_SECRET: placeholder-for-build-only
+          HEALTH_CHECK_SECRET: placeholder-for-build-only
