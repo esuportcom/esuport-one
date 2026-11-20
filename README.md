@@ -1,6 +1,11 @@
-# eSuport One v1.5.0 — runtime health and deployment validation
+# eSuport One v1.6.0 — priority and SLA inbox upgrade
 
 ## What's included
+- Conversation priority levels: low, normal, high, and urgent.
+- Optional SLA due date per conversation, with inbox filtering and visibility.
+- Server-side validation for priority and SLA updates, scoped to the active workspace.
+
+## v1.5 foundation
 - v1.4 customer management, conversation history, mobile dashboard/inbox responsiveness, live dashboard metrics, demo workspace onboarding, and channel crash protection remain preserved on `main`.
 - Public `/api/health` liveness endpoint returning the running application version.
 - `/api/health/ready` configuration-readiness endpoint.
